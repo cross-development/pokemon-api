@@ -1,15 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using PokemonApi;
 using PokemonApi.Data;
+using PokemonApi.Interfaces;
+using PokemonApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddTransient<Seed>();
+builder.Services.AddScoped<IPokemonRepository, PokemonRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<RouteOptions>(options =>
+{
+    options.LowercaseUrls = true;
+});
+// Application database context
+builder.Services.AddHealthChecks().AddDbContextCheck<DataContext>();
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -38,8 +47,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
