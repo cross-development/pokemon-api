@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Interfaces;
-using PokemonApi.Models;
 using System.Net.Mime;
+using AutoMapper;
+using PokemonApi.Dto;
 
 namespace PokemonApi.Controllers;
 
@@ -10,19 +11,21 @@ namespace PokemonApi.Controllers;
 public class PokemonController : ControllerBase
 {
     private readonly IPokemonRepository _pokemonRepository;
+    private readonly IMapper _mapper;
 
-    public PokemonController(IPokemonRepository pokemonRepository)
+    public PokemonController(IPokemonRepository pokemonRepository, IMapper mapper)
     {
         _pokemonRepository = pokemonRepository;
+        _mapper = mapper;
     }
 
     [HttpGet]
     [Produces(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(typeof(IEnumerable<Pokemon>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PokemonDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult GetPokemons()
     {
-        ICollection<Pokemon> pokemons = _pokemonRepository.GetPokemons();
+        var pokemons = _mapper.Map<List<PokemonDto>>(_pokemonRepository.GetPokemons());
 
         if (!ModelState.IsValid)
         {
@@ -30,5 +33,51 @@ public class PokemonController : ControllerBase
         }
 
         return Ok(pokemons);
+    }
+
+    [HttpGet("{pokeId:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult GetPokemon(int pokeId)
+    {
+        var isPokemonExist = _pokemonRepository.PokemonExists(pokeId);
+
+        if (!isPokemonExist)
+        {
+            return NotFound();
+        }
+
+        var pokemon = _mapper.Map<PokemonDto>(_pokemonRepository.GetPokemon(pokeId));
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        return Ok(pokemon);
+    }
+
+    [HttpGet("{pokeId:int}/rating")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult GetPokemonRating(int pokeId)
+    {
+        var isPokemonExist = _pokemonRepository.PokemonExists(pokeId);
+
+        if (!isPokemonExist)
+        {
+            return NotFound();
+        }
+
+        var rating = _pokemonRepository.GetPokemonRating(pokeId);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest();
+        }
+
+        return Ok(rating);
     }
 }

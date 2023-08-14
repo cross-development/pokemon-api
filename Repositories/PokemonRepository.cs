@@ -17,4 +17,31 @@ public class PokemonRepository : IPokemonRepository
     {
         return _context.Pokemon.OrderBy(pokemon => pokemon.Id).ToList();
     }
+
+    public Pokemon GetPokemon(int pokeId)
+    {
+        return _context.Pokemon.FirstOrDefault(pokemon => pokemon.Id == pokeId);
+    }
+
+    public Pokemon GetPokemon(string name)
+    {
+        return _context.Pokemon.FirstOrDefault(pokemon => pokemon.Name == name);
+    }
+
+    public decimal GetPokemonRating(int pokeId)
+    {
+        IQueryable<Review> reviews = _context.Reviews.Where(review => review.Pokemon.Id == pokeId);
+
+        if (!reviews.Any())
+        {
+            return 0;
+        }
+
+        return (decimal)reviews.Sum(review => review.Rating) / reviews.Count();
+    }
+
+    public bool PokemonExists(int pokeId)
+    {
+        return _context.Pokemon.Any(pokemon => pokemon.Id == pokeId);
+    }
 }
