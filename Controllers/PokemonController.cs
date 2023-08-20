@@ -39,6 +39,7 @@ public class PokemonController : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetPokemon(int pokeId)
     {
         var isPokemonExist = _pokemonRepository.PokemonExists(pokeId);
@@ -62,6 +63,7 @@ public class PokemonController : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetPokemonRating(int pokeId)
     {
         var isPokemonExist = _pokemonRepository.PokemonExists(pokeId);
