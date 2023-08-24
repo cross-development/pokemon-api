@@ -3,7 +3,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
-using PokemonApi.Models;
 
 namespace PokemonApi.Controllers;
 

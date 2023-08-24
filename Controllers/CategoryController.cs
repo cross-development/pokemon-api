@@ -65,8 +65,7 @@ public class CategoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult GetPokemonByCategoryId(int categoryId)
     {
-        var pokemons = _mapper.Map<List<PokemonDto>>(
-            _categoryRepository.GetPokemonByCategoryId(categoryId));
+        var pokemons = _mapper.Map<List<PokemonDto>>(_categoryRepository.GetPokemonByCategoryId(categoryId));
 
         if (!ModelState.IsValid)
         {

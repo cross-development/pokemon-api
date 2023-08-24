@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using PokemonApi.Data;
+﻿using PokemonApi.Data;
 using PokemonApi.Interfaces;
 using PokemonApi.Models;
 
@@ -8,12 +7,10 @@ namespace PokemonApi.Repositories;
 public class CountryRepository : ICountryRepository
 {
     private readonly DataContext _context;
-    private readonly IMapper _mapper;
 
-    public CountryRepository(DataContext context, IMapper mapper)
+    public CountryRepository(DataContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public ICollection<Country> GetCountries()

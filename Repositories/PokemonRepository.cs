@@ -23,11 +23,6 @@ public class PokemonRepository : IPokemonRepository
         return _context.Pokemon.FirstOrDefault(pokemon => pokemon.Id == pokeId);
     }
 
-    public Pokemon GetPokemon(string name)
-    {
-        return _context.Pokemon.FirstOrDefault(pokemon => pokemon.Name == name);
-    }
-
     public decimal GetPokemonRating(int pokeId)
     {
         IQueryable<Review> reviews = _context.Reviews.Where(review => review.Pokemon.Id == pokeId);
