@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PokemonApi.Interfaces;
-using System.Net.Mime;
+﻿using System.Net.Mime;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
+using PokemonApi.Interfaces;
 
 namespace PokemonApi.Controllers;
 
