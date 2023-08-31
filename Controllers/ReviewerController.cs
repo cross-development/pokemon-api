@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
+using PokemonApi.Models;
 
 namespace PokemonApi.Controllers;
 
@@ -81,5 +82,48 @@ public class ReviewerController : ControllerBase
         }
 
         return Ok(reviews);
+    }
+
+    [HttpPost]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult CreateReviewer([FromBody] ReviewerDto reviewerDto)
+    {
+        if (reviewerDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var reviewer = _reviewerRepository.GetReviewers()
+            .Where(reviewer => reviewer.LastName.Trim().ToUpper() == reviewerDto.LastName.TrimEnd().ToUpper())
+            .FirstOrDefault();
+
+        if (reviewer != null)
+        {
+            ModelState.AddModelError("error", "Reviewer already exists");
+
+            return StatusCode(StatusCodes.Status409Conflict, ModelState);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState); 
+        }
+
+        var reviewerMap = _mapper.Map<Reviewer>(reviewerDto);
+
+        var isReviewerCreated = _reviewerRepository.CreateReviewer(reviewerMap);
+
+        if (!isReviewerCreated)
+        {
+            ModelState.AddModelError("error", "Something went wrong while saving");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return Ok("Successfully created");
     }
 }

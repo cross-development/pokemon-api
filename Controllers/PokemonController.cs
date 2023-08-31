@@ -85,8 +85,11 @@ public class PokemonController : ControllerBase
     }
 
     [HttpPost]
+    [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult CreatePokemon([FromQuery] int ownerId, [FromQuery] int categoryId, [FromBody] PokemonDto pokemonDto)
     {
         if (pokemonDto == null)
@@ -94,15 +97,15 @@ public class PokemonController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var pokemons = _pokemonRepository.GetPokemons()
+        var pokemon = _pokemonRepository.GetPokemons()
             .Where(pokemon => pokemon.Name.Trim().ToUpper() == pokemonDto.Name.Trim().ToUpper())
             .FirstOrDefault();
 
-        if (pokemons != null)
+        if (pokemon != null)
         {
-            ModelState.AddModelError("", "Pokemon already exists");
+            ModelState.AddModelError("error", "Pokemon already exists");
 
-            return StatusCode(StatusCodes.Status422UnprocessableEntity, ModelState);
+            return StatusCode(StatusCodes.Status409Conflict, ModelState);
         }
 
         if (!ModelState.IsValid)
@@ -116,7 +119,7 @@ public class PokemonController : ControllerBase
 
         if (!isPokemonCreated)
         {
-            ModelState.AddModelError("", "Something went wrong while saving");
+            ModelState.AddModelError("error", "Something went wrong while saving");
 
             return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
         }
