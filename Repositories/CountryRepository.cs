@@ -40,4 +40,18 @@ public class CountryRepository : ICountryRepository
     {
         return _context.Countries.Any(country => country.Id == countryId);
     }
+
+    public bool CreateCountry(Country country)
+    {
+        _context.Add(country);
+
+        return Save();
+    }
+
+    public bool Save()
+    {
+        var saved = _context.SaveChanges();
+
+        return saved > 0;
+    }
 }

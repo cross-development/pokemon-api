@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
+using PokemonApi.Models;
 
 namespace PokemonApi.Controllers;
 
@@ -89,5 +90,43 @@ public class CountryController : ControllerBase
         }
 
         return Ok(owners);
+    }
+
+    [HttpPost]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult CreateCountry([FromBody] CountryDto countryDto)
+    {
+        if (countryDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var country = _countryRepository.GetCountries()
+            .Where(country => country.Name.Trim().ToUpper() == countryDto.Name.Trim().ToUpper())
+            .FirstOrDefault();
+
+        if (country != null)
+        {
+            ModelState.AddModelError("error", "Country already exists");
+
+            return StatusCode(StatusCodes.Status409Conflict, ModelState);
+        }
+
+        var countryMap = _mapper.Map<Country>(countryDto);
+
+        var isCountryCreated = _countryRepository.CreateCountry(countryMap);
+
+        if (!isCountryCreated)
+        {
+            ModelState.AddModelError("error", "Something went wrong while saving");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return Ok("Successfully created");
     }
 }
