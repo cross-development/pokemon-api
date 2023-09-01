@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
+using PokemonApi.Models;
 
 namespace PokemonApi.Controllers;
 
@@ -73,5 +74,48 @@ public class CategoryController : ControllerBase
         }
 
         return Ok(pokemons);
+    }
+
+    [HttpPost]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult CreateCategory([FromBody] CategoryDto categoryDto)
+    {
+        if (categoryDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var category = _categoryRepository.GetCategories()
+            .Where(category => category.Name.Trim().ToUpper() == categoryDto.Name.Trim().ToUpper())
+            .FirstOrDefault();
+
+        if (category != null)
+        {
+            ModelState.AddModelError("error", "Category already exists");
+
+            return StatusCode(StatusCodes.Status409Conflict, ModelState);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var categoryMap = _mapper.Map<Category>(categoryDto);
+
+        var isCategoryCreated = _categoryRepository.CreateCategory(categoryMap);
+
+        if (!isCategoryCreated)
+        {
+            ModelState.AddModelError("error", "Something went wrong while saving");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return Ok("Successfully created");
     }
 }

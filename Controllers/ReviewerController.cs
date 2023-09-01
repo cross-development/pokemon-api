@@ -98,7 +98,7 @@ public class ReviewerController : ControllerBase
         }
 
         var reviewer = _reviewerRepository.GetReviewers()
-            .Where(reviewer => reviewer.LastName.Trim().ToUpper() == reviewerDto.LastName.TrimEnd().ToUpper())
+            .Where(reviewer => reviewer.LastName.Trim().ToUpper() == reviewerDto.LastName.Trim().ToUpper())
             .FirstOrDefault();
 
         if (reviewer != null)
@@ -110,7 +110,7 @@ public class ReviewerController : ControllerBase
 
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState); 
+            return BadRequest(ModelState);
         }
 
         var reviewerMap = _mapper.Map<Reviewer>(reviewerDto);
