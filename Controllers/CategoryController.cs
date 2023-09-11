@@ -118,4 +118,48 @@ public class CategoryController : ControllerBase
 
         return Ok("Successfully created");
     }
+
+    [HttpPut("{categoryId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult UpdateCategory(int categoryId, [FromBody] CategoryDto categoryDto)
+    {
+        if (categoryDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (categoryId != categoryDto.Id)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var isCategoryExist = _categoryRepository.CategoriesExists(categoryId);
+
+        if (!isCategoryExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var categoryMap = _mapper.Map<Category>(categoryDto);
+
+        var isCategoryUpdated = _categoryRepository.UpdateCategory(categoryMap);
+
+        if (!isCategoryUpdated)
+        {
+            ModelState.AddModelError("error", "Something went wrong updating category");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
+
 }
