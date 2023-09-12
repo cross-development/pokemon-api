@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
 using PokemonApi.Models;
+using PokemonApi.Repositories;
 
 namespace PokemonApi.Controllers;
 
@@ -14,7 +15,7 @@ public class PokemonController : ControllerBase
     private readonly IPokemonRepository _pokemonRepository;
     private readonly IMapper _mapper;
 
-    public PokemonController(IPokemonRepository pokemonRepository, IMapper mapper)
+    public PokemonController(IPokemonRepository pokemonRepository, IReviewRepository reviewRepository, IMapper mapper)
     {
         _pokemonRepository = pokemonRepository;
         _mapper = mapper;
@@ -125,5 +126,50 @@ public class PokemonController : ControllerBase
         }
 
         return Ok("Successfully created");
+    }
+
+    [HttpPut("{pokeId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult UpdateOwner(int pokeId, 
+        [FromQuery] int ownerId, [FromQuery] int categoryId,
+        [FromBody] PokemonDto pokemonDto)
+    {
+        if (pokemonDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (pokeId != pokemonDto.Id)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var isPokemonExist = _pokemonRepository.PokemonExists(pokeId);
+
+        if (!isPokemonExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var pokemonMap = _mapper.Map<Pokemon>(pokemonDto);
+
+        var isPokemonUpdated = _pokemonRepository.UpdatePokemon(ownerId, categoryId, pokemonMap);
+
+        if (!isPokemonUpdated)
+        {
+            ModelState.AddModelError("error", "Something went wrong updating pokemon");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
     }
 }
