@@ -149,4 +149,47 @@ public class OwnerController : ControllerBase
 
         return Ok("Successfully created");
     }
+
+    [HttpPut("{ownerId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult UpdateOwner(int ownerId, [FromBody] OwnerDto ownerDto)
+    {
+        if (ownerDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (ownerId != ownerDto.Id)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var isOwnerExist = _ownerRepository.OwnerExists(ownerId);
+
+        if (!isOwnerExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var ownerMap = _mapper.Map<Owner>(ownerDto);
+
+        var isOwnerUpdated = _ownerRepository.UpdateOwner(ownerMap);
+
+        if (!isOwnerUpdated)
+        {
+            ModelState.AddModelError("error", "Something went wrong updating owner");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
