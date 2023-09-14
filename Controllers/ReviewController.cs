@@ -129,4 +129,47 @@ public class ReviewController : ControllerBase
 
         return Ok("Successfully created");
     }
+
+    [HttpPut("{reviewId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult UpdateReview(int reviewId, [FromBody] ReviewDto reviewDto)
+    {
+        if (reviewDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (reviewId != reviewDto.Id)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var isReviewExist = _reviewRepository.ReviewExists(reviewId);
+
+        if (!isReviewExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var reviewMap = _mapper.Map<Review>(reviewDto);
+
+        var isReviewUpdated = _reviewRepository.UpdateReview(reviewMap);
+
+        if (!isReviewUpdated)
+        {
+            ModelState.AddModelError("error", "Something went wrong updating review");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
