@@ -126,4 +126,47 @@ public class ReviewerController : ControllerBase
 
         return Ok("Successfully created");
     }
+
+    [HttpPut("{reviewerId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult UpdateReviewer(int reviewerId, [FromBody] ReviewerDto reviewerDto)
+    {
+        if (reviewerDto == null)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (reviewerId != reviewerDto.Id)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var isReviewerExist = _reviewerRepository.ReviewerExists(reviewerId);
+
+        if (!isReviewerExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var reviewerMap = _mapper.Map<Reviewer>(reviewerDto);
+
+        var isReviewerUpdated = _reviewerRepository.UpdateReviewer(reviewerMap);
+
+        if (!isReviewerUpdated)
+        {
+            ModelState.AddModelError("error", "Something went wrong updating reviewer");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }

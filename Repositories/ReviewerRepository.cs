@@ -47,6 +47,13 @@ public class ReviewerRepository : IReviewerRepository
         return Save();
     }
 
+    public bool UpdateReviewer(Reviewer reviewer)
+    {
+        _context.Update(reviewer);
+
+        return Save();
+    }
+
     public bool Save()
     {
         var saved = _context.SaveChanges();

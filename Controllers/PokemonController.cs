@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
 using PokemonApi.Models;
-using PokemonApi.Repositories;
 
 namespace PokemonApi.Controllers;
 
