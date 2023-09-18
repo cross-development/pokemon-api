@@ -162,4 +162,36 @@ public class CategoryController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("{categoryId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeleteCategory(int categoryId)
+    {
+        var isCategoryExist = _categoryRepository.CategoriesExists(categoryId);
+
+        if (!isCategoryExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var categoryToDelete = _categoryRepository.GetCategory(categoryId);
+
+        var isCategoryDeleted = _categoryRepository.DeleteCategory(categoryToDelete);
+
+        if (!isCategoryDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting category");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
