@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PokemonApi.Dto;
 using PokemonApi.Interfaces;
 using PokemonApi.Models;
+using PokemonApi.Repositories;
 
 namespace PokemonApi.Controllers;
 
@@ -12,11 +13,13 @@ namespace PokemonApi.Controllers;
 public class PokemonController : ControllerBase
 {
     private readonly IPokemonRepository _pokemonRepository;
+    private readonly IReviewRepository _reviewRepository;
     private readonly IMapper _mapper;
 
     public PokemonController(IPokemonRepository pokemonRepository, IReviewRepository reviewRepository, IMapper mapper)
     {
         _pokemonRepository = pokemonRepository;
+        _reviewRepository = reviewRepository;
         _mapper = mapper;
     }
 
@@ -165,6 +168,50 @@ public class PokemonController : ControllerBase
         if (!isPokemonUpdated)
         {
             ModelState.AddModelError("error", "Something went wrong updating pokemon");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("{pokeId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeletePokemon(int pokeId)
+    {
+        var isPokemonExist = _pokemonRepository.PokemonExists(pokeId);
+
+        if (!isPokemonExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var reviewsToDelete = _reviewRepository.GetReviewsOfAPokemon(pokeId);
+
+        var isReviewsDeleted = _reviewRepository.DeleteReviews(reviewsToDelete.ToList());
+
+        if (!isReviewsDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong when deleting reviews");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        var pokemonToDelete = _pokemonRepository.GetPokemon(pokeId);
+
+        var isPokemonDeleted = _pokemonRepository.DeletePokemon(pokemonToDelete);
+
+        if (!isPokemonDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting pokemon");
 
             return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
         }
