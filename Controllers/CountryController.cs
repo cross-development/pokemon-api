@@ -172,4 +172,37 @@ public class CountryController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{countryId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeleteCountry(int countryId)
+    {
+        var isCountryExist = _countryRepository.CountryExists(countryId);
+
+        if (!isCountryExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var countryToDelete = _countryRepository.GetCountry(countryId);
+
+        var isCountryDeleted = _countryRepository.DeleteCountry(countryToDelete);
+
+        if (!isCountryDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting country");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
