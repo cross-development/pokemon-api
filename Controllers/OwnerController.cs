@@ -192,4 +192,37 @@ public class OwnerController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{ownerId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeleteOwner(int ownerId)
+    {
+        var isOwnerExist = _ownerRepository.OwnerExists(ownerId);
+
+        if (!isOwnerExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var ownerToDelete = _ownerRepository.GetOwner(ownerId);
+
+        var isOwnerDeleted = _ownerRepository.DeleteOwner(ownerToDelete);
+
+        if (!isOwnerDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting owner");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
