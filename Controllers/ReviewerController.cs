@@ -169,4 +169,37 @@ public class ReviewerController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{reviewerId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeleteReviewer(int reviewerId)
+    {
+        var isReviewerExist = _reviewerRepository.ReviewerExists(reviewerId);
+
+        if (!isReviewerExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var reviewerToDelete = _reviewerRepository.GetReviewer(reviewerId);
+
+        var isReviewerDeleted = _reviewerRepository.DeleteReviewer(reviewerToDelete);
+
+        if (!isReviewerDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting reviewer");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
