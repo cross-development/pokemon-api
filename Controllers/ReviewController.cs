@@ -172,4 +172,70 @@ public class ReviewController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{reviewId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeleteReview(int reviewId)
+    {
+        var isReviewExist = _reviewRepository.ReviewExists(reviewId);
+
+        if (!isReviewExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var reviewToDelete = _reviewRepository.GetReview(reviewId);
+
+        var isReviewDeleted = _reviewRepository.DeleteReview(reviewToDelete);
+
+        if (!isReviewDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting review");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("/delete-reviews-by-reviewer/{reviewerId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult DeleteReviewsByReviewer(int reviewerId)
+    {
+        var isReviewerExist = _reviewerRepository.ReviewerExists(reviewerId);
+
+        if (!isReviewerExist)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest();
+        }
+
+        var reviewsToDelete = _reviewerRepository.GetReviewsByReviewer(reviewerId);
+
+        var isReviewsDeleted = _reviewRepository.DeleteReviews(reviewsToDelete.ToList());
+
+        if (!isReviewsDeleted)
+        {
+            ModelState.AddModelError("error", "Something went wrong deleting reviews");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+        }
+
+        return NoContent();
+    }
 }
